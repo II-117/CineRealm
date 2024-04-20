@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Movie Discovery</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link href="index_style.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+
+  <nav class="navbar">
+    <div id="mySidebar" class="sidebar">
+      <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
+      <a>Genre</a>
+      <hr class="solid">
+      <b href="#" data-genre-id="28">Action</b>
+      <b href="#" data-genre-id="12">Adventure</b>
+      <b href="#" data-genre-id="16">Animation</b>
+      <b href="#" data-genre-id="35">Comedy</b>
+      <b href="#" data-genre-id="80">Crime</b>
+      <b href="#" data-genre-id="99">Documentary</b>
+      <b href="#" data-genre-id="18">Drama</b>
+      <b href="#" data-genre-id="10751">Family</b>
+      <b href="#" data-genre-id="14">Fantasy</b>
+      <b href="#" data-genre-id="36">History</b>
+      <b href="#" data-genre-id="27">Horror</b>
+      <b href="#" data-genre-id="10402">Music</b>
+      <b href="#" data-genre-id="9648">Mystery</b>
+      <b href="#" data-genre-id="10749">Romance</b>
+      <b href="#" data-genre-id="878">Science Fiction</b>
+      <b href="#" data-genre-id="10770">TV Movie</b>
+      <b href="#" data-genre-id="53">Thriller</b>
+      <b href="#" data-genre-id="10752">War</b>
+      <b href="#" data-genre-id="37">Western</b>
+    </div>
+
+    <div id="main">
+      <button class="openbtn" onclick="openNav()">☰</button>
+    </div>
+
+    <div class="navbar-container">
+      <button id="homeButton" class="Cinerealm-home" role="button">CineRealm</button>
+      <input type="text" id="searchInput" placeholder="Search for a movie...">
+      <button id="searchButton">Search</button>
+
+    </div>
+  </nav>
+
+  <div id=" tags">
+  </div>
+  <div style="margin-top: 150px;" id="movies"></div>
+  <button2 id="randomMoviesButton" onclick="displayRandomMovies()" style="justify-content: center;">Decide 3 For
+    Me!</button2>
+  <div id="randomMoviesDisplay" style="padding: 20px; margin-top: 20px;"></div>
+
+
+  <script>
+    const API_KEY = 'api_key=1cf50e6248dc270629e802686245c2c8';
+    const BASE_URL = 'https://api.themoviedb.org/3';
+    let currentPage = 1;
+    const moviesPerPage = 25;
+
+    async function fetchMovies(page) {
+      const url = `${BASE_URL}/discover/movie?sort_by=popularity.desc&${API_KEY}&page=${page}`;
+      const response = await fetch(url);
+      const data = await response.json();
+      return data.results;
+    }
+
+
+    async function fetchMoviesByGenre(genreId) {
+      const url = `${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=${genreId}`;
+      const response = await fetch(url);
+      const data = await response.json();
+      return data.results;
+    }
+
+    document.querySelectorAll('[data-genre-id]').forEach(button => {
+      button.addEventListener('click', async () => {
+        const genreId = button.getAttribute('data-genre-id');
+        const movies = await fetchMoviesByGenre(genreId);
+        renderMovies(movies);
+      });
+    });
+
+    async function renderMoviesByGenre(genreId, page = 1) {
+      const response = await fetch(`${BASE_URL}/discover/movie?sort_by=popularity.desc&with_genres=${genreId}&page=${page}&${API_KEY}`);
+      const data = await response.json();
+      const results = data.results;
+
+      let moviesHTML = '';
+      if (results && results.length > 0) {
+        results.forEach(movie => {
+          moviesHTML += `
+                  <div class="movie" id="movie_${movie.id}">
+                    <img src="https://image.tmdb.org/t/p/w500${movie.poster_path}" alt="${movie.title}">
+                    <div class="movie-info">
+                      <h2 class="movie-title">${movie.title}</h2>
+                      <p class="movie-overview">Release Date: ${movie.release_date}</p>
+                      <p class="movie-overview">Rating: ${movie.vote_average}</p>
+                    </div>
+                  </div>
+                `;
+        });
+
+        document.querySelector('#movies').innerHTML = moviesHTML;
+
+        results.forEach(movie => {
+          const movieCard = document.getElementById(`movie_${movie.id}`);
+          movieCard.addEventListener('click', () => {
+            window.location.href = `movie.html?id=${movie.id}`;
+          });
+        });
+      } else {
+        console.log("No results found or results are undefined.");
+        document.querySelector('#movies').innerHTML = '<p>No movies found for this genre.</p>';
+      }
+    }
+
+
+    document.querySelectorAll('[data-genre-id]').forEach(button => {
+      button.addEventListener('click', () => {
+        const genreId = button.getAttribute('data-genre-id');
+        renderMoviesByGenre(genreId);
+      });
+    });
+
+
+    async function renderMovies(page) {
+      const results = await fetchMovies(page);
+
+      let moviesHTML = '';
+      results.forEach(movie => {
+        moviesHTML += `
+          <div class="movie" id="movie_${movie.id}">
+            <img src="https://image.tmdb.org/t/p/w500${movie.poster_path}" alt="${movie.title}">
+            <div class="movie-info">
+              <h2 class="movie-title">${movie.title}</h2>
+              <p class="movie-overview">Release Date: ${movie.release_date}</p>
+              <p class="movie-overview">Rating: ${movie.vote_average}</p>
+            </div>
+          </div>
+        `;
+      });
+
+      document.querySelector('#movies').innerHTML = moviesHTML;
+
+      results.forEach(movie => {
+        const movieCard = document.getElementById(`movie_${movie.id}`);
+        movieCard.addEventListener('click', () => {
+          window.location.href = `movie.html?id=${movie.id}`;
+        });
+      });
+    }
+
+    async function searchMovies() {
+      const query = document.querySelector('#searchInput').value;
+      const response = await fetch(`${BASE_URL}/search/movie?${API_KEY}&query=${query}`);
+      const data = await response.json();
+      let moviesHTML = '';
+      data.results.forEach(movie => {
+        moviesHTML += `
+          <div class="movie" id="movie_${movie.id}">
+            <img src="https://image.tmdb.org/t/p/w500${movie.poster_path}" alt="${movie.title}">
+            <div class="movie-info">
+              <h2 class="movie-title">${movie.title}</h2>
+              <p class="movie-overview">Release Date: ${movie.release_date}</p>
+              <p class="movie-overview">Rating: ${movie.vote_average}</p>
+            </div>
+          </div>
+        `;
+      });
+      document.querySelector('#movies').innerHTML = moviesHTML;
+
+
+      data.results.forEach(movie => {
+        const movieCard = document.getElementById(`movie_${movie.id}`);
+        movieCard.addEventListener('click', () => {
+          window.location.href = `movie.html?id=${movie.id}`;
+        });
+      });
+    }
+
+    document.querySelector('#searchButton').addEventListener('click', searchMovies);
+
+    document.querySelector('.Cinerealm-home').addEventListener("click", function () {
+      window.location.href = "index.html";
+    });
+
+    renderMovies(currentPage);
+
+    function openNav() {
+      document.getElementById("mySidebar").style.width = "400px";
+      document.getElementById("mySidebar").style.marginTop = "0px";
+    }
+
+    function closeNav() {
+      document.getElementById("mySidebar").style.width = "0";
+      document.getElementById("main").style.marginLeft = "0";
+    }
+
+    document.querySelectorAll('#mySidebar button').forEach(button => {
+      button.addEventListener('click', function () {
+        const genreId = this.dataset.genreId;
+        renderMoviesByGenre(genreId, 1);
+        closeNav();
+      });
+    });
+
+    function closeNav() {
+      document.getElementById("mySidebar").style.width = "0";
+    }
+
+    async function fetchRandomMovies() {
+      const totalPages = 500;
+      const randomPage = Math.floor(Math.random() * totalPages) + 1;
+      const response = await fetch(`${BASE_URL}/discover/movie?sort_by=popularity.desc&${API_KEY}&page=${randomPage}`);
+      const data = await response.json();
+      return data.results;
+    }
+
+
+    async function displayRandomMovies() {
+      try {
+        const movies = await fetchRandomMovies();
+        const randomIndexes = [];
+        while (randomIndexes.length < 3) {
+          const randomIndex = Math.floor(Math.random() * movies.length);
+          if (!randomIndexes.includes(randomIndex)) {
+            randomIndexes.push(randomIndex);
+          }
+        }
+        const selectedMovies = randomIndexes.map(index => movies[index]);
+
+        const displayArea = document.getElementById('randomMoviesDisplay');
+        displayArea.innerHTML = selectedMovies.map(movie => `
+          <div class="movie" id="movie_${movie.id}">
+            <img src="https://image.tmdb.org/t/p/w500${movie.poster_path}" alt="${movie.title}">
+            <div class="movie-info">
+              <h2 class="movie-title-rand">${movie.title}</h2>
+              <p class="movie-overview-rand">Release Date: ${movie.release_date}</p>
+              <p class="movie-overview-rand">Rating: ${movie.vote_average}</p><br>
+            </div>
+          </div>
+        `).join('');
+      } catch (error) {
+        console.error('Failed to fetch or display movies:', error);
+      }
+    }
+
+    document.getElementById('randomMoviesButton').addEventListener('click', displayRandomMovies);
+
+  </script>
+
+  <footer>
+    <div class="footer-sections">
+      <div class="contact-info">
+        <h4>Contact Us</h4>
+        <p>
+          <strong>Company Name:</strong> CineRealm INC<br>
+          <strong>Address:</strong> St. Augustine Trinidad and Tobago <br>
+          <strong>Phone:</strong> 1(868) 123-4567<br>
+          <strong>Email:</strong> <a href="mailto:your@email.com">your@email.com</a>
+        </p>
+      </div>
+
+      <div class="social-media">
+        <h4>Follow Us</h4>
+        <div style="display: inline-block; margin-right: 10px;">
+          <a href="https://www.facebook.com/UWISTA" target="_blank"><img
+              src="https://static.vecteezy.com/system/resources/previews/018/930/698/original/facebook-logo-facebook-icon-transparent-free-png.png"
+              alt="Facebook Logo" class="social-icon" style="width: 65px;"></a>
+        </div>
+        <div style="display: inline-block;">
+          <a href="https://www.instagram.com/youraccount" target="_blank"><img
+              src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Instagram_logo_2016.svg/2048px-Instagram_logo_2016.svg.png"
+              alt="Instagram Logo" class="social-icon" style="width: 40px; margin-bottom:12px"></a>
+        </div>
+      </div>
+    </div>
+  </footer>
+</body>
+
+</html>
